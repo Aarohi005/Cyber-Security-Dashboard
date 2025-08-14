@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cybersecurity Dashboard</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #0f1c2e;
+      color: #fff;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+    }
+    .card {
+      background-color: #1e2b3e;
+      border-radius: 1rem;
+      padding: 1.5rem;
+      margin: 1rem;
+      width: 300px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    }
+    input, select, button {
+      width: 100%;
+      padding: 0.7rem;
+      margin-top: 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+    }
+    button {
+      background-color: #3a5c83;
+      color: #fff;
+      cursor: pointer;
+    }
+    .dashboard {
+      width: 80%;
+      margin-top: 2rem;
+    }
+    .alert {
+      background-color: #23344d;
+      padding: 1rem;
+      border-radius: 1rem;
+      margin-bottom: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .high { background-color: #c0392b; color: #fff; padding: 0.4rem 1rem; border-radius: 1rem; }
+    .medium { background-color: #f39c12; color: #fff; padding: 0.4rem 1rem; border-radius: 1rem; }
+    .low { background-color: #27ae60; color: #fff; padding: 0.4rem 1rem; border-radius: 1rem; }
+    .logout {
+      margin-top: 1rem;
+      background-color: #d35400;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card" id="loginCard">
+      <h2>Login</h2>
+      <input type="text" id="loginUsername" placeholder="Username" />
+      <input type="password" id="loginPassword" placeholder="Password" />
+      <button onclick="login()">Log in</button>
+    </div>
+
+    <div class="card" id="registerCard">
+      <h2>Register</h2>
+      <input type="text" id="regUsername" placeholder="Username" />
+      <input type="password" id="regPassword" placeholder="Password" />
+      <select id="regRole">
+        <option value="viewer">Viewer</option>
+        <option value="admin">Admin</option>
+      </select>
+      <button onclick="register()">Register</button>
+    </div>
+
+    <div class="dashboard" id="dashboard" style="display:none">
+      <h2>Dashboard</h2>
+      <button class="logout" onclick="logout()">Logout</button>
+      <div id="alerts"></div>
+    </div>
+  </div>
+
+  <script>
+    let token = localStorage.getItem("token") || '';
+    if (token) {
+      document.getElementById('dashboard').style.display = 'block';
+      document.getElementById('loginCard').style.display = 'none';
+      document.getElementById('registerCard').style.display = 'none';
+      loadAlerts();
+    }
+
+    async function login() {
+      const res = await fetch('http://localhost:5000/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: document.getElementById('loginUsername').value,
+          password: document.getElementById('loginPassword').value
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        token = data.token;
+        localStorage.setItem("token", token);
+        document.getElementById('dashboard').style.display = 'block';
+        document.getElementById('loginCard').style.display = 'none';
+        document.getElementById('registerCard').style.display = 'none';
+        loadAlerts();
+      } else {
+        alert(data.message);
+      }
+    }
+
+    async function register() {
+      const res = await fetch('http://localhost:5000/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: document.getElementById('regUsername').value,
+          password: document.getElementById('regPassword').value,
+          role: document.getElementById('regRole').value
+        })
+      });
+      const data = await res.json();
+      alert(data.message);
+    }
+
+    async function loadAlerts() {
+      const res = await fetch('http://localhost:5000/api/alerts', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const alerts = await res.json();
+      const container = document.getElementById('alerts');
+      container.innerHTML = '';
+      alerts.forEach(alert => {
+        const div = document.createElement('div');
+        div.className = 'alert';
+        div.innerHTML = `
+          <div>
+            <strong>${alert.type}</strong><br>
+            ${alert.message} <br><small>${alert.timestamp} - ${alert.location}</small>
+          </div>
+          <div class="${alert.severity.toLowerCase()}">${alert.severity}</div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function logout() {
+      token = '';
+      localStorage.removeItem("token");
+      document.getElementById('dashboard').style.display = 'none';
+      document.getElementById('loginCard').style.display = 'block';
+      document.getElementById('registerCard').style.display = 'block';
+    }
+  </script>
+</body>
+</html>

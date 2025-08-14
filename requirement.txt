@@ -1,0 +1,8 @@
+flask
+flask-cors
+pyjwt
+werkzeug
+nmap
+python-nmap
+pandas
+kaggle
