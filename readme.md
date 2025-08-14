@@ -1,4 +1,4 @@
-# Cyber Threat Dashboard — Portfolio Edition
+# Cyber Threat Dashboard 
 
 A **full-stack cybersecurity dashboard** that visualizes and manages cyber threat alerts in real-time. Includes:
 - **Flask backend** with JWT authentication, SQLite database, Nmap integration for network scans, and Socket.IO for live updates.
@@ -52,4 +52,5 @@ cd frontend
 npm install
 npm start
 ```
+
 Frontend runs on http://localhost:3000.
